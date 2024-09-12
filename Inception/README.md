@@ -1,117 +1,87 @@
-# Inception
+<h1 align="center">
+    🐳 Inception
+</h1>
 
-*이 프로젝트는 Docker를 사용하여 시스템 관리 지식을 확장하는 것을 목표로 한다.*
+<h3 align="center">
+	<a href="#-project-overview">프로젝트 소개</a>
+	<span> · </span>
+	<a href="#-docker-components">Docker 컴포넌트</a>
+	<span> · </span>
+	<a href="#-requirements">필수 요구사항</a>
+</h3>
 
-# Summary
 
-1. [Definitions](https://www.notion.so/For-evaluation-01734294531a4799bb83f016b18a34e0?pvs=21)
-2. [Docker](https://www.notion.so/For-evaluation-01734294531a4799bb83f016b18a34e0?pvs=21)
-3. [Nginx](https://www.notion.so/For-evaluation-01734294531a4799bb83f016b18a34e0?pvs=21)
-4. [Wordpress](https://www.notion.so/For-evaluation-01734294531a4799bb83f016b18a34e0?pvs=21)
-5. [Mariadb](https://www.notion.so/For-evaluation-01734294531a4799bb83f016b18a34e0?pvs=21)
+## 📘 프로젝트 소개
 
-# Definitions
+**Inception** 프로젝트는 **Docker**를 사용하여 시스템 관리 지식을 확장하는 것을 목표로 합니다. 이 프로젝트는 **3계층 아키텍처(3-tier architecture)**를 기반으로 구성되어 있으며, 다양한 서비스를 **컨테이너**로 구현하여 **Nginx**, **WordPress**, **MariaDB**와 같은 기술을 활용해 웹 애플리케이션을 배포합니다. Docker를 이용한 시스템 설계와 관리의 기초를 배우는 프로젝트입니다.
 
-### What is 3 Tier-Architecture?
 
-- *애플리케이션을 프레젠테이션(Web Server) 계층, 애플리케이션(AP) 계층, 데이터(Data) 계층이라는 3개의 논리적이고 물리적인 컴퓨팅 계층으로 구성하는 확립된 소프트웨어 애플리케이션 아키텍쳐다.*
-    
-    ![image.png](images/image.png)
-    
+## 💡 3-Tier Architecture
 
-**3 Tier server**
+**3계층 아키텍처**는 애플리케이션을 **프레젠테이션(Web Server)** 계층, **애플리케이션(AP)** 계층, **데이터(Data)** 계층으로 나누는 소프트웨어 아키텍처입니다.
 
-- Web Server : 클라이언트가 보려고 하는 GUI, interface, webpage를 제공해주는 서비스.
-- Application Server : page나 interface를 보는 것 외에 주문, 결제 검색 등 다양한 기능을 실질적으로 처리하는 계층.
-- Database Server : 사용자의 요청을 처리할 때, 데이터에 대한 작업을 지원하고 보관하는 계층.
+- **Web Server (Nginx)**: 클라이언트의 요청을 처리하고, 웹페이지를 제공합니다.
+- **Application Server (WordPress)**: 애플리케이션의 로직을 처리하며, 동적 콘텐츠를 생성합니다.
+- **Database Server (MariaDB)**: 애플리케이션에 필요한 데이터를 저장하고 관리합니다.
 
-→ [3계층 아키텍처란?](https://www.notion.so/Computer-architecture-94a8835acbd644e0b77704dc51ba01d9?pvs=21) **[IBM]**
 
-→ [3계층 구조](https://dbknowledge.tistory.com/78) **[TSTORY]**
+## 🛠️ Docker 컴포넌트
 
-# Docker
+### 1. **Docker**
 
-### What is docker?
+- **Docker**는 컨테이너 기반의 가상화 플랫폼입니다. 애플리케이션과 그 종속성을 함께 패키징하여 실행 환경을 일관되게 관리할 수 있습니다.
+- **ENTRYPOINT vs CMD**: Dockerfile에서 `ENTRYPOINT`는 고정된 명령어를 설정하며, `CMD`는 기본값을 설정하여 사용자가 명령을 덮어쓸 수 있습니다.
 
-*컨테이너 기반의 오픈소스 가상화 플랫폼이다.*
+### 2. **Nginx**
 
-- 애플리케이션과 실행하는데 필요한 모든 종속성을 함께 포장하는 방식으로, 배포와 실행을 보다 단순화하고, 효율적으로 만드는 기술이다.
-- **ENTRYPOINT VS CMD❓**
-    
-    `ENTRYPOINT`와 `CMD` 사이에 어떤 차이가 있는지 설명하기 전에, `dumb-init`에 대한 간단한 설명을 먼저 드리겠습니다. `dumb-init`은 Docker 컨테이너에서 사용하기 위해 설계된 간단한 프로세스 관리자로, 컨테이너 내에서의 신호처리 문제와 좀비 프로세스 문제를 해결해주는 역할을 합니다.
-    
-    이제 두 Dockerfile 구문의 차이에 대해 살펴보겠습니다:
-    
-    1. `ENTRYPOINT ["/usr/bin/dumb-init", "--", "nginx", "-g", "daemon off;"]`
-        
-        이 구문에서는 `ENTRYPOINT`만 사용되고 있습니다. 컨테이너가 시작될 때 실행되는 명령은 `/usr/bin/dumb-init -- nginx -g daemon off;`이며, 이 명령은 항상 실행됩니다. `CMD`가 없기 때문에, 사용자가 docker run 명령 시 전달하는 추가적인 인수들은 이 `ENTRYPOINT` 명령에 추가로 붙게 됩니다.
-        
-    2. `ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]CMD [ "nginx", "-g", "daemon off;" ]`
-        
-        이 구문에서는 `ENTRYPOINT`와 `CMD`가 모두 사용되고 있습니다. `ENTRYPOINT`는 `/usr/bin/dumb-init --`이고, `CMD`는 `nginx -g daemon off;`입니다. 컨테이너가 시작될 때 실행되는 명령은 기본적으로 `ENTRYPOINT`와 `CMD`를 합친 `/usr/bin/dumb-init -- nginx -g daemon off;`이며, 이 명령은 항상 실행됩니다.
-        
-        하지만 사용자가 docker run 명령 시 전달하는 추가적인 인수들은 `CMD` 부분을 대체하게 됩니다. 예를 들어, 사용자가 `docker run <image> server`라는 명령을 실행하면, 실제로 실행되는 명령은 `/usr/bin/dumb-init -- server`가 됩니다. 따라서 `CMD`를 "기본값"으로 생각할 수 있으며, 필요에 따라 사용자가 변경할 수 있습니다.
-        
-    
-    따라서, 이 두 방식의 차이점은 `CMD`를 사용하는 경우에는 docker run 명령에서 사용자가 전달하는 인수에 따라 실행되는 명령이 변경될 수 있다는 것입니다. 반면 `ENTRYPOINT`만 사용하는 경우에는 실행되는 명령이 항상 동일하며, 사용자가 전달하는 인수들은 `ENTRYPOINT` 명령에 추가로 붙게 됩니다.
-    
+- **Nginx**는 고성능 HTTP 서버이자 리버스 프록시 서버로, 높은 동시성 요청을 처리하는 데 최적화되어 있습니다.
+- 이 프로젝트에서는 **웹 서버**로서의 역할을 하며, 클라이언트 요청을 받아 **WordPress** 애플리케이션으로 전달합니다.
 
-### What is PID 1?
+### 3. **WordPress**
 
-*PID1(Process Identifier 1)은 컨테이너에서 가장 먼저 시작된 프로세스를 가리킨다.*
+- **WordPress**는 PHP 기반의 오픈소스 **컨텐츠 관리 시스템(CMS)**입니다. 사용자 친화적인 웹사이트 제작 도구로, **MariaDB**를 데이터베이스로 사용합니다.
+- **PHP-FPM**(FastCGI Process Manager for PHP)를 사용하여 PHP 애플리케이션을 빠르게 처리하고 웹 서버와의 통신을 최적화합니다.
 
-- 컨테이너 환경에서 PID 1으로 동작하는 프로세스는 모든 종료된 자식 프로세스에 대한 정보를 수집하고, 시스템 신호를 적절하게 처리하는 등의 역할을 한다.
+### 4. **MariaDB**
 
-### What is Dumb Init with Daemon?
+- **MariaDB**는 MySQL에서 포크된 오픈소스 **관계형 데이터베이스(RDBMS)**입니다. **WordPress** 애플리케이션의 데이터 저장소로 사용되며, 사용자의 데이터를 안전하게 관리합니다.
 
-*Docker 컨테이너의 PID1으로 동작한다.*
 
-- 일부 애플리케이션은 좀비 프로세스와 신호를 적절히 처리하지 못해서 기대하지 못한 동작을 할 수 있기에, dumb-init이 이 동작을 대신하여 작동한다.
+## 📋 필수 요구사항
 
-# Nginx
+### 1. **Docker 환경 구성**
 
-### What is nginx?
+- **Docker**와 **Docker Compose**를 사용하여 **Nginx**, **WordPress**, **MariaDB**를 각각의 컨테이너로 실행합니다.
+- 각 서비스는 독립된 컨테이너로 관리되며, 컨테이너 간 네트워크를 통해 통신합니다.
 
-*높은 동시성 연결을 처리하는 데 최적화된 오픈 소스 웹 서버 및 리버스 프록시 서버이다.*
+### 2. **Nginx 웹 서버**
 
-# Wordpress
+- **Nginx**는 443 포트에서 **SSL**을 사용하여 클라이언트의 요청을 처리하며, **WordPress** 컨테이너로 프록시 요청을 전달합니다.
 
-### What is wordpress?
+### 3. **WordPress 애플리케이션**
 
-*웹사이트 제작을 위한 오픈소스 컨텐츠 관리 시스템(CMS)이다.*
+- **WordPress**는 **PHP-FPM**을 사용하여 애플리케이션 서버로 동작하며, **Nginx**와 통신하여 동적 콘텐츠를 제공합니다.
+- **MariaDB**와 연결하여 데이터를 관리합니다.
 
-- 워드프레스는 PHP로 작성되었으며 MySQL 또는 MariaDB 데이터베이스를 사용한다.
+### 4. **MariaDB 데이터베이스**
 
-### What is CGI(Common Gateway Inerface)?
+- **MariaDB**는 **WordPress**의 데이터를 저장하고 관리하는 역할을 합니다.
+- 모든 데이터는 **Docker volume**을 사용하여 영구적으로 저장됩니다.
 
-*CGI는 웹 서버와 동적 콘텐츠 생성 프로그램(예를 들면, 스크립트) 사이의 표준 인터페이스이다.*
+### 5. **SSL 인증서**
 
-- 이 인터페이스를 통해 웹 서버는 클라이언트의 HTTP 요청을 처리하고 웹 페이지를 동적으로 생성할 수 있는 프로그램을 호출할 수 있다.
+- **SSL 인증서**를 생성하여 **Nginx** 서버에 적용하고, HTTPS로 트래픽을 처리합니다.
 
-### What is php-fpm(FastCGI Process Manager for PHP)?
 
-*PHP-FPM은 FastCGI를 구현한 것으로, PHP 애플리케이션을 실행하고 웹 서버와 통신하는 방식을 향상시킨다.*
+## 📊 데이터베이스 명령어
 
-- FastCGI는 CGI의 개념을 확장하여 요청을 처리하기 위해 프로세스를 재사용하는 방식을 도입했다.
-
-# Mariadb
-
-### What is mariadb?
-
-*오픈 소스의 관계형 데이터베이스 관리 시스템(RDBMS)이다.*
-
-### How database working?
+- **MySQL** CLI에서 데이터베이스 관리:
 
 ```bash
-mysql -uroot // To connect on mysql CLI
-SELECT User FROM mysql.user; // To see all the users
-USE wordpress // To connect on your wordpress database
-mysqldump -u username -p databasename > filename.sql // To export the file
-mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /usr/local/bin/wordpress.sql // To import the file
-
-SHOW DATABASES; // show the databes
-use 'wordpress'; // go in the wordpress databse
-SHOW TABLES; // show all the tables from the database you selected
-SELECT wp_users.display_name FROM wp_users; // display username from wordpress database
-SELECT *  FROM wp_users; // select
+mysql -uroot // MySQL CLI에 연결
+USE wordpress; // WordPress 데이터베이스 선택
+SHOW TABLES; // 테이블 목록 확인
+SELECT * FROM wp_users; // WordPress 사용자 목록 조회
+mysqldump -u username -p databasename > filename.sql // 데이터베이스 백업
+mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /usr/local/bin/wordpress.sql // 데이터베이스 복구
 ```
